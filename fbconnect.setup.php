@@ -3,12 +3,12 @@
 [BEGIN_SED_EXTPLUGIN]
 Code=fbconnect
 Name=FaceBook Connect
-Description=Various FaceBook Services for your site
-Version=0.0.1
-Date=2009-oct-23
+Description=Basic FaceBook account integration
+Version=2.0.0
+Date=2011-01-18
 Author=Trustmaster
-Copyright=
-Notes=You must obtain your own API key to use FBConnect integration
+Copyright=&copy; Vladimir Sibirov 2009-2011
+Notes=You must register your site as FaceBook App and obtain your own AppId and Secret to use FaceBook integration
 SQL=
 Auth_guests=R
 Lock_guests=W12345A
@@ -19,8 +19,8 @@ Lock_members=12345A
 [BEGIN_SED_EXTPLUGIN_CONFIG]
 locale=01:string::en_US:Default FaceBook interface locale
 app_id=02:string:::Application ID
-api_key=03:string:::Public API key
-secret_key=04:string:::Secret key
+secret_key=03:string:::Secret key
+autoactiv=04:radio::1:Automatic activation of FaceBook registrants
 [END_SED_EXTPLUGIN_CONFIG]
 ==================== */
 

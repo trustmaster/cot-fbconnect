@@ -13,44 +13,53 @@ Order=10
 defined('SED_CODE') or die('Wrong URL');
 
 require_once $cfg['plugins_dir'] . '/fbconnect/lib/facebook.php';
-require_once $cfg['plugins_dir'] . '/fbconnect/inc/functions.php';
+require_once $cfg['plugins_dir'] . '/fbconnect/inc/fbconnect.functions.php';
 
-$facebook = new Facebook($cfg['plugin']['fbconnect']['api_key'], $cfg['plugin']['fbconnect']['secret_key']);
+$facebook = new Facebook(array(
+  'appId'  => $cfg['plugin']['fbconnect']['app_id'],
+  'secret' => $cfg['plugin']['fbconnect']['secret_key'],
+  'cookie' => true,
+));
 
-$fb_uid = $facebook->get_loggedin_user();
+$fb_session = $facebook->getSession();
 
-if ($usr['id'] == 0)
+$fb_connected = false;
+$fb_me = null;
+
+if ($fb_session)
 {
-	sed_sql_query("UPDATE $db_users SET user_fbid = 0 WHERE user_id = 8");
+	try
+	{
+		$fb_uid = $facebook->getUser();
+		// $fb_me = $facebook->api('/me');
+		$fb_connected = true;
+	}
+	catch (FacebookApiException $fb_e)
+	{
+		error_log($fb_e);
+		$fb_connected = false;
+	}
 }
 
-if ($fb_uid > 0)
+
+if ($fb_connected)
 {
-	// Provide some user data from FB
-	if (empty($_SESSION['fb_usr']))
-	{
-		$fb_res = $facebook->api_client->users_getInfo($fb_uid, 'current_location, hometown_location, name, last_name, first_name, locale, pic_square, profile_url, proxied_email, timezone, birthday_date, website');
-		$fb_usr = $fb_res[0];
-		$_SESSION['fb_usr'] = $fb_usr;
-	}
-	else
-	{
-		$fb_usr = $_SESSION['fb_usr'];
-	}
-	
 	if ($usr['id'] > 0)
 	{
 		// Logged in both on FB and Cotonti
 		if (empty($usr['user_fbid']))
 		{
-			sed_sql_query("UPDATE $db_users SET user_fbid = $fb_uid WHERE user_id = " . $usr['id']);
+			sed_sql_query("UPDATE $db_users SET user_fbid = '".sed_sql_prep($fb_uid)."'
+				WHERE user_id = " . $usr['id']);
 		}
 		// continue normal execution
 	}
-	elseif (!defined('SED_USERS') && !defined('SED_MESSAGE')) // avoid deadlocks and loops
+	elseif (!defined('SED_USERS') && !defined('SED_MESSAGE')
+		&& !(defined('SED_PLUG') && $_GET['e'] == 'fbconnect'
+			&& $_GET['m'] == 'register')) // avoid deadlocks and loops
 	{
 		// Check if this FB user has a native Cotonti account
-		$fb_res = sed_sql_query("SELECT * FROM $db_users WHERE user_fbid = $fb_uid");
+		$fb_res = sed_sql_query("SELECT * FROM $db_users WHERE user_fbid = '".sed_sql_prep($fb_uid)."'");
 		if ($row = sed_sql_fetchassoc($fb_res))
 		{
 			// Load user account and log him in
@@ -61,10 +70,18 @@ if ($fb_uid > 0)
 		{
 			// Forward to quick account registration,
 			// except for users module to let existing users log in and have FB UID filled
-			sed_redirect(sed_url('users', 'm=register', '', TRUE));
+			sed_redirect(sed_url('plug', 'e=fbconnect&m=register', '', TRUE));
 			exit;
 		}
 		sed_sql_freeresult($fb_res);
 	}
 }
+
+// Disable Anti-CSRF for built-in registration
+if (defined('SED_PLUG') && $_GET['e'] == 'fbconnect' && $_GET['m'] == 'register')
+{
+	define('SED_NO_ANTIXSS', true);
+	$sys['uriredir_prev'] = $_SESSION['s_uri_redir'];
+}
+
 ?>

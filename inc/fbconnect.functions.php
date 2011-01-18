@@ -1,8 +1,9 @@
 <?php
 /**
  * Auxilliary functions for FaceBook Connect plugin
+ *
  * @author Trustmaster
- * @copyright (с) Vladimir Sibirov, Cotonti Team 2009
+ * @copyright (с) 2009-2011 Vladimir Sibirov
  */
 
 /**
@@ -18,14 +19,12 @@ function fb_autologin($row)
 	// banned/inactive
 	if ($row['user_maingrp'] == -1)
 	{
-		$facebook->clear_cookie_state();
 		sed_log("Log in attempt, user inactive : ".$rusername, 'usr');
 		sed_redirect(sed_url('message', 'msg=152', '', true));
 		exit;
 	}
 	if ($row['user_maingrp'] == 2)
 	{
-		$facebook->clear_cookie_state();
 		sed_log("Log in attempt, user inactive : ".$rusername, 'usr');
 		sed_redirect(sed_url('message', 'msg=152', '', true));
 		exit;
@@ -38,7 +37,6 @@ function fb_autologin($row)
 		}
 		else
 		{
-			$facebook->clear_cookie_state();
 			sed_log("Log in attempt, user banned : ".$rusername, 'usr');
 			sed_redirect(sed_url('message', 'msg=153&num='.$row['user_banexpire'], '', true));
 			exit;
@@ -46,21 +44,34 @@ function fb_autologin($row)
 	}
 
 	$ruserid = $row['user_id'];
+	$rdefskin = $row['user_skin'];
+	$rdeftheme = $row['user_theme'];
 
-	$hashsalt = sed_unique(16);
+	$token = sed_unique(16);
+	$sid = sed_unique(32);
 
-	sed_sql_query("UPDATE $db_users SET user_lastip='{$usr['ip']}', user_lastlog = {$sys['now_offset']}, user_logcount = user_logcount + 1, user_hashsalt = '$hashsalt' WHERE user_id={$row['user_id']}");
+	sed_sql_query("UPDATE $db_users SET user_lastip='{$usr['ip']}', user_lastlog = {$sys['now_offset']}, user_logcount = user_logcount + 1, user_token = '$token', user_sid = '$sid' WHERE user_id={$row['user_id']}");
 
-	$passhash = md5($row['user_password'].$hashsalt);
+	$u = $ruserid.':'.$sid;
 
-	$u = base64_encode($ruserid.':_:'.$passhash);
+	if($rremember)
+	{
+		sed_setcookie($sys['site_id'], $u, time()+$cfg['cookielifetime'], $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
+	}
+	else
+	{
+		$_SESSION[$sys['site_id']] = $u;
+	}
 
-	sed_setcookie($sys['site_id'], $u, time()+$cfg['cookielifetime'], $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
-
-	$_SESSION['saltstamp'] = $sys['now_offset'];
+	/* === Hook === */
+	$extp = sed_getextplugins('users.auth.check.done');
+	if (is_array($extp))
+	{ foreach($extp as $k => $pl) { include_once($cfg['plugins_dir'].'/'.$pl['pl_code'].'/'.$pl['pl_file'].'.php'); } }
+	/* ===== */
 
 	$sql = sed_sql_query("DELETE FROM $db_online WHERE online_userid='-1' AND online_ip='".$usr['ip']."' LIMIT 1");
 	sed_uriredir_apply($cfg['redirbkonlogin']);
 	sed_uriredir_redirect(empty($redirect) ? sed_url('index') : base64_decode($redirect));
+	exit;
 }
 ?>
