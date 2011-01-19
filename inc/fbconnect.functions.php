@@ -54,14 +54,7 @@ function fb_autologin($row)
 
 	$u = $ruserid.':'.$sid;
 
-	if($rremember)
-	{
-		sed_setcookie($sys['site_id'], $u, time()+$cfg['cookielifetime'], $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
-	}
-	else
-	{
-		$_SESSION[$sys['site_id']] = $u;
-	}
+	sed_setcookie($sys['site_id'], $u, time()+$cfg['cookielifetime'], $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
 
 	/* === Hook === */
 	$extp = sed_getextplugins('users.auth.check.done');
