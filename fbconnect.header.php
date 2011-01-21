@@ -35,6 +35,7 @@ else
 }
 
 $fb_json_session = $fb_session ? json_encode($fb_session) : 'false';
+$fb_reload_page = $usr['id'] > 0 ? 'false' : 'true';
 $fb_init_script = <<<HTM
 <div id="fb-root"></div>
 <script type="text/javascript">
@@ -46,7 +47,7 @@ window.fbAsyncInit = function() {
 		cookie: true,
 		xfbml: true
 	});
-	FB.Event.subscribe('auth.login', function(response) { window.location.reload(); });
+	if ($fb_reload_page) FB.Event.subscribe('auth.login', function(response) { window.location.reload(); });
 };
 (function() {
 	var e = document.createElement('script'); e.async = true;

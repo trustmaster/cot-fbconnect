@@ -47,7 +47,7 @@ if ($fb_connected)
 	if ($usr['id'] > 0)
 	{
 		// Logged in both on FB and Cotonti
-		if (empty($usr['user_fbid']))
+		if (empty($usr['profile']['user_fbid']))
 		{
 			sed_sql_query("UPDATE $db_users SET user_fbid = '".sed_sql_prep($fb_uid)."'
 				WHERE user_id = " . $usr['id']);
@@ -58,6 +58,8 @@ if ($fb_connected)
 		&& !(defined('SED_PLUG') && $_GET['e'] == 'fbconnect'
 			&& $_GET['m'] == 'register')) // avoid deadlocks and loops
 	{
+		// Remember this URL
+		sed_uriredir_store();
 		// Check if this FB user has a native Cotonti account
 		$fb_res = sed_sql_query("SELECT * FROM $db_users WHERE user_fbid = '".sed_sql_prep($fb_uid)."'");
 		if ($row = sed_sql_fetchassoc($fb_res))
