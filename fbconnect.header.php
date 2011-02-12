@@ -67,7 +67,7 @@ $t->assign(array(
 	'FB_XMLNS' => 'xmlns:fb="http://www.facebook.com/2008/fbml"',
 	'FB_LOGIN' => $fb_connected ? $fb_logout_button : '<fb:login-button></fb:login-button>',
 	'FB_LOGOUT' => $fb_connected ? $fb_logout_button : $out['loginout'],
-	'FB_LOGIN_REGISTER' => $fb_connected ? '' : '<fb:login-button registration-url="'.$fb_register_url.'" />',
+	'FB_LOGIN_REGISTER' => $fb_connected ? '' : '<fb:login-button registration-url="'.$fb_register_url.'"></fb:login-button>',
 	'FB_REGISTER_URL' => $fb_register_url,
 	'FB_LOGIN_URL' => $fb_connected ? '#' : $facebook->getLoginUrl(),
 	'FB_LOGOUT_URL' => $fb_connected ? '#' : $facebook->getLogoutUrl(),
