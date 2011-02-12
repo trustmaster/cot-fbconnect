@@ -125,7 +125,10 @@ if ($m == 'register' && $usr['id'] == 0)
 
 		sed_shield_update(20, 'Registration');
 
-		$userid = sed_sql_insert($db_users, $ruser);
+		sed_sql_insert($db_users, $ruser);
+
+		$userid = sed_sql_insertid();
+		$ruser['user_id'] = $userid;
 
 		$sql = sed_sql_query("INSERT INTO $db_groups_users (gru_userid, gru_groupid) VALUES (".(int)$userid.", ".(int)$ruser['user_maingrp'].")");
 

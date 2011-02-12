@@ -4,8 +4,8 @@
 Code=fbconnect
 Name=FaceBook Connect
 Description=Basic FaceBook account integration
-Version=2.0.0
-Date=2011-01-18
+Version=2.0.1
+Date=2011-02-12
 Author=Trustmaster
 Copyright=&copy; Vladimir Sibirov 2009-2011
 Notes=You must register your site as FaceBook App and obtain your own AppId and Secret to use FaceBook integration
