@@ -1054,7 +1054,6 @@ abstract class BaseFacebook
     throw $e;
   }
 
-
   /**
    * Prints to the error log if you aren't in command line mode.
    *

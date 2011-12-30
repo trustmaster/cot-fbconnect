@@ -3,13 +3,13 @@
  * English language file
  *
  * @package fbconnect
- * @version 2.0.0
+ * @version 2.1
  * @author Trustmaster
  * @copyright (c) 2011 Vladimir Sibirov, Skuola.net
  * @license BSD
  */
 
-defined('SED_CODE') || die('Wrong URL.');
+defined('COT_CODE') || die('Wrong URL.');
 
 $L['fbconnect_registration'] = 'Quick Registration using FaceBook';
 $L['fbconnect_welcome'] = 'Hi %1$s,

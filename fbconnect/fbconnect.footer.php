@@ -1,16 +1,12 @@
 <?php
 /* ====================
-[BEGIN_SED_EXTPLUGIN]
-Code=fbconnect
-Part=footer
-File=fbconnect.footer
-Hooks=footer.tags
-Tags=footer.tpl:{FB_CONNECT}
-Order=10
-[END_SED_EXTPLUGIN]
+ * [BEGIN_COT_EXT]
+ * Hooks=footer.tags
+ * Tags=footer.tpl:{FB_CONNECT}
+ * [END_COT_EXT]
 ==================== */
 
-defined('SED_CODE') or die('Wrong URL');
+defined('COT_CODE') or die('Wrong URL');
 
 /**
  * FBConnect footer javascript for quicker page load

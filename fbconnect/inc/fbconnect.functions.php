@@ -13,65 +13,79 @@
  */
 function fb_autologin($row)
 {
-	global $facebook, $usr, $sys, $cfg, $redirect, $db_users, $db_online;
+	global $db, $facebook, $usr, $sys, $cfg, $redirect, $db_users, $db_online;
 
 	$rusername = $row['user_name'];
-	// banned/inactive
-	if ($row['user_maingrp'] == -1)
+	$rmdpass = $row['user_password'];
+	$rremember = true;
+	if ($row['user_maingrp']==-1)
 	{
-		sed_log("Log in attempt, user inactive : ".$rusername, 'usr');
-		sed_redirect(sed_url('message', 'msg=152', '', true));
-		exit;
+		$env['status'] = '403 Forbidden';
+		cot_log("Log in attempt, user inactive : ".$rusername, 'usr');
+		cot_redirect(cot_url('message', 'msg=152', '', true));
 	}
-	if ($row['user_maingrp'] == 2)
+	if ($row['user_maingrp']==2)
 	{
-		sed_log("Log in attempt, user inactive : ".$rusername, 'usr');
-		sed_redirect(sed_url('message', 'msg=152', '', true));
-		exit;
+		$env['status'] = '403 Forbidden';
+		cot_log("Log in attempt, user inactive : ".$rusername, 'usr');
+		cot_redirect(cot_url('message', 'msg=152', '', true));
 	}
-	elseif ($row['user_maingrp'] == 3)
+	elseif ($row['user_maingrp']==3)
 	{
 		if ($sys['now'] > $row['user_banexpire'] && $row['user_banexpire']>0)
 		{
-			$sql = sed_sql_query("UPDATE $db_users SET user_maingrp='4' WHERE user_id={$row['user_id']}");
+			$sql = $db->update($db_users, array('user_maingrp' => '4'),  "user_id={$row['user_id']}");
 		}
 		else
 		{
-			sed_log("Log in attempt, user banned : ".$rusername, 'usr');
-			sed_redirect(sed_url('message', 'msg=153&num='.$row['user_banexpire'], '', true));
-			exit;
+			$env['status'] = '403 Forbidden';
+			cot_log("Log in attempt, user banned : ".$rusername, 'usr');
+			cot_redirect(cot_url('message', 'msg=153&num='.$row['user_banexpire'], '', true));
 		}
 	}
 
 	$ruserid = $row['user_id'];
-	$rdefskin = $row['user_skin'];
 	$rdeftheme = $row['user_theme'];
+	$rdefscheme = $row['user_scheme'];
 
-	$token = sed_unique(16);
-	$sid = sed_unique(32);
+	$token = cot_unique(16);
 
-	sed_sql_query("UPDATE $db_users SET user_lastip='{$usr['ip']}', user_lastlog = {$sys['now_offset']}, user_logcount = user_logcount + 1, user_token = '$token', user_sid = '$sid' WHERE user_id={$row['user_id']}");
+	$sid = hash_hmac('sha256', $rmdpass . $row['user_sidtime'], $cfg['secret_key']);
 
-	$u = $ruserid.':'.$sid;
+	if (empty($row['user_sid']) || $row['user_sid'] != $sid
+		|| $row['user_sidtime'] + $cfg['cookielifetime'] < $sys['now_offset'])
+	{
+		// Generate new session identifier
+		$sid = hash_hmac('sha256', $rmdpass . $sys['now_offset'], $cfg['secret_key']);
+		$update_sid = ", user_sid = " . $db->quote($sid) . ", user_sidtime = " . $sys['now_offset'];
+	}
+	else
+	{
+		$update_sid = '';
+	}
 
-	sed_setcookie($sys['site_id'], $u, time()+$cfg['cookielifetime'], $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
+	$db->query("UPDATE $db_users SET user_lastip='{$usr['ip']}', user_lastlog = {$sys['now_offset']}, user_logcount = user_logcount + 1, user_token = '$token' $update_sid WHERE user_id={$row['user_id']}");
+
+	$u = base64_encode($ruserid.':'.$sid);
+
+	if ($rremember)
+	{
+		cot_setcookie($sys['site_id'], $u, time()+$cfg['cookielifetime'], $cfg['cookiepath'], $cfg['cookiedomain'], $sys['secure'], true);
+	}
+	else
+	{
+		$_SESSION[$sys['site_id']] = $u;
+	}
 
 	/* === Hook === */
-	$extp = sed_getextplugins('users.auth.check.done');
-	if (is_array($extp))
-	{ foreach($extp as $k => $pl) { include_once($cfg['plugins_dir'].'/'.$pl['pl_code'].'/'.$pl['pl_file'].'.php'); } }
+	foreach (cot_getextplugins('fbconnect.autologin') as $pl)
+	{
+		include $pl;
+	}
 	/* ===== */
 
-	$sql = sed_sql_query("DELETE FROM $db_online WHERE online_userid='-1' AND online_ip='".$usr['ip']."' LIMIT 1");
-	
-	/* === Hook === */
-	$extp = sed_getextplugins('fbconnect.autologin');
-	if (is_array($extp))
-	{ foreach($extp as $k => $pl) { include_once($cfg['plugins_dir'].'/'.$pl['pl_code'].'/'.$pl['pl_file'].'.php'); } }
-	/* ===== */
-	
-	sed_uriredir_apply($cfg['redirbkonlogin']);
-	sed_uriredir_redirect(empty($redirect) ? sed_url('index') : base64_decode($redirect));
-	exit;
+	$sql = $db->delete($db_online, "online_userid='-1' AND online_ip='".$usr['ip']."' LIMIT 1");
+	cot_uriredir_apply($cfg['redirbkonlogin']);
+	cot_uriredir_redirect(empty($redirect) ? cot_url('index') : base64_decode($redirect));
 }
 ?>
