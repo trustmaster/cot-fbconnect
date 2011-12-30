@@ -48,7 +48,7 @@ if ($fb_connected)
 		// continue normal execution
 	}
 	elseif (!defined('COT_USERS') && !defined('COT_MESSAGE')
-		&& !(defined('COT_PLUG') && $_GET['e'] == 'fbconnect'
+		&& !($_GET['e'] == 'fbconnect'
 			&& $_GET['m'] == 'register')) // avoid deadlocks and loops
 	{
 		// Remember this URL
@@ -73,7 +73,7 @@ if ($fb_connected)
 }
 
 // Disable Anti-CSRF for built-in registration
-if (defined('COT_PLUG') && $_GET['e'] == 'fbconnect' && $_GET['m'] == 'register')
+if ($_GET['e'] == 'fbconnect' && $_GET['m'] == 'register')
 {
 	define('COT_NO_ANTIXSS', true);
 	$sys['uriredir_prev'] = $_SESSION['s_uri_redir'];
