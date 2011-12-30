@@ -30,7 +30,7 @@ defined('SED_CODE') or die('Wrong URL');
 
 if($action == 'install')
 {
-	if (sed_sql_numrows(sed_sql_query("SHOW COLUMNS FROM `$db_users` WHERE `Field` = 'user_postcount'")) == 0)
+	if (sed_sql_numrows(sed_sql_query("SHOW COLUMNS FROM `$db_users` WHERE `Field` = 'user_fbid'")) == 0)
 	{
 		sed_extrafield_add('users', 'fbid', 'input', '<input class="text" type="text" maxlength="16" size="16" />', '', 'FaceBook UID');
 	}
