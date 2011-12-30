@@ -55,19 +55,14 @@ window.fbAsyncInit = function() {
                     }
                 });
         }
-
-      FB.api('/me', function(user) {
-        if (user.id){
-             var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
-             js = document.createElement('script'); js.id = id; js.async = true;
-             js.src = "//connect.facebook.net/$fb_locale/all.js";
-             document.getElementsByTagName('head')[0].appendChild(js);
-        }
-      });
- 
-
 };
 
+(function(d){
+	 var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
+	 js = d.createElement('script'); js.id = id; js.async = true;
+	 js.src = "//connect.facebook.net/$fb_locale/all.js";
+	 d.getElementsByTagName('head')[0].appendChild(js);
+ }(document));
 </script>
 HTM;
 
