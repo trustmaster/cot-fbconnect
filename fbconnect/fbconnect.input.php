@@ -21,17 +21,16 @@ $facebook = new Facebook(array(
   'cookie' => true,
 ));
 
-$fb_session = $facebook->getSession();
+$fb_user = $facebook->getUser();
 
 $fb_connected = false;
 $fb_me = null;
 
-if ($fb_session)
+if ($fb_user)
 {
 	try
 	{
-		$fb_uid = $facebook->getUser();
-		// $fb_me = $facebook->api('/me');
+		$fb_me = $facebook->api('/me');
 		$fb_connected = true;
 	}
 	catch (FacebookApiException $fb_e)
@@ -49,26 +48,28 @@ if ($fb_connected)
 		// Logged in both on FB and Cotonti
 		if (empty($usr['profile']['user_fbid']))
 		{
-			sed_sql_query("UPDATE $db_users SET user_fbid = '".sed_sql_prep($fb_uid)."'
+			sed_sql_query("UPDATE $db_users SET user_fbid = '".sed_sql_prep($fb_user)."'
 				WHERE user_id = " . $usr['id']);
 		}
 		// continue normal execution
 	}
 	elseif (!defined('SED_USERS') && !defined('SED_MESSAGE')
 		&& !(defined('SED_PLUG') && $_GET['e'] == 'fbconnect'
+			&& $_GET['m'] == 'register')
+		&& !(defined('SED_PLUG') && $_GET['e'] == 'scuola'
 			&& $_GET['m'] == 'register')) // avoid deadlocks and loops
 	{
 		// Remember this URL
 		sed_uriredir_store();
 		// Check if this FB user has a native Cotonti account
-		$fb_res = sed_sql_query("SELECT * FROM $db_users WHERE user_fbid = '".sed_sql_prep($fb_uid)."'");
+		$fb_res = sed_sql_query("SELECT * FROM $db_users WHERE user_fbid = '".sed_sql_prep($fb_user)."'");
 		if ($row = sed_sql_fetchassoc($fb_res))
 		{
 			// Load user account and log him in
 			fb_autologin($row);
 			exit;
 		}
-		else
+		elseif ($cfg['plugin']['fbconnect']['autoreg'])
 		{
 			// Forward to quick account registration,
 			// except for users module to let existing users log in and have FB UID filled

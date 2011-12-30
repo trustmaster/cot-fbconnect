@@ -35,7 +35,7 @@ if ($m == 'register' && $usr['id'] == 0)
 		$response = parse_signed_request($_POST['signed_request'], $cfg['plugin']['fbconnect']['secret_key']);
 		if (!$response)
 		{
-			cot_die();
+			sed_die();
 		}
 
 		sed_shield_protect();
@@ -47,7 +47,7 @@ if ($m == 'register' && $usr['id'] == 0)
 		/* ===== */
 
 		$is_fb_user = isset($response['user_id']);
-		$fb_uid = $response['user_id'];
+		$fb_user = $response['user_id'];
 
 		// Check if e-mail exists
 		$ruseremail = mb_strtolower($response['registration']['email']);
@@ -59,26 +59,26 @@ if ($m == 'register' && $usr['id'] == 0)
 			{
 				// Attach FB ID to account and log in
 				$ruser = sed_sql_fetchassoc($res);
-				sed_sql_query("UPDATE $db_users SET user_fbid = '".sed_sql_prep($fb_uid)."'
+				sed_sql_query("UPDATE $db_users SET user_fbid = '".sed_sql_prep($fb_user)."'
 					WHERE user_id = " . $ruser['user_id']);
 				fb_autologin($ruser);
 			}
 			else
 			{
 				// Duplicate email
-				cot_die();
+				sed_die();
 			}
 			exit;
 		}
 
 		// Check username and make it unique
-		$rusername = $response['registration']['name'];
+		$rusername = empty($fb_me['username']) ? $response['registration']['name'] : $fb_me['username'];
 		$bdate = explode('/', $response['registration']['birthday']);
 		$tried_bd = false;
 		while ($res = sed_sql_result(sed_sql_query("SELECT COUNT(*) FROM $db_users
 			WHERE user_name = '" . sed_sql_prep($rusername) . "'"), 0, 0) && $res > 0)
 		{
-			$rusername = $response['registration']['name'];
+			$rusername = empty($fb_me['username']) ? $response['registration']['name'] : $fb_me['username'];
 			if ($tried_bd)
 			{
 				$rusername .= mt_rand(1, 999);
@@ -121,7 +121,7 @@ if ($m == 'register' && $usr['id'] == 0)
 		$ruser['user_lastip'] = $usr['ip'];
 		$ruser['user_lostpass'] = $validationkey;
 
-		$ruser['user_fbid'] = $fb_uid;
+		$ruser['user_fbid'] = $fb_user;
 
 		sed_shield_update(20, 'Registration');
 
@@ -140,6 +140,10 @@ if ($m == 'register' && $usr['id'] == 0)
 
 		if ($cfg['plugin']['fbconnect']['autoactiv'])
 		{
+			$rsubject = $cfg['maintitle']." - ".$L['Registration'];
+			$rbody = sprintf($L['fbconnect_welcome'], $rusername, $rpassword1);
+			$rbody .= "\n\n".$L['aut_contactadmin'];
+			sed_mail($ruseremail, $rsubject, $rbody);
 			fb_autologin($ruser);
 			exit;
 		}
@@ -169,7 +173,6 @@ if ($m == 'register' && $usr['id'] == 0)
 			sed_redirect(sed_url('message', 'msg=105', '', true));
 			exit;
 		}
-
 	}
 	else
 	{
