@@ -64,7 +64,7 @@ HTM;
 
 $fb_register_url = COT_ABSOLUTE_URL . cot_url('plug', 'e=fbconnect&m=register');
 
-$out['loginout_url'] = cot_url('users', 'm=logout&'.cot_xg());
+$out['loginout_url'] = cot_url('login', 'out=1&'.cot_xg());
 $out['loginout'] = "<a href=\"".$out['loginout_url']."\">".$L['Logout']."</a>";
 $fb_logout_button = '<a href="'.$out['loginout_url'].'" onclick="FB.logout();return true;" title="'.$L['Logout'].'" ><img id="fb_logout_image" src="http://static.ak.fbcdn.net/images/fbconnect/logout-buttons/logout_small.gif" alt="'.$L['Logout'].'" /></a>';
 

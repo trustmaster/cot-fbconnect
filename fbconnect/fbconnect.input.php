@@ -47,7 +47,7 @@ if ($fb_connected)
 		}
 		// continue normal execution
 	}
-	elseif (!defined('COT_USERS') && !defined('COT_MESSAGE')
+	elseif (!defined('COT_USERS') && !defined('COT_AUTH') && !defined('COT_MESSAGE')
 		&& !($_GET['e'] == 'fbconnect'
 			&& $_GET['m'] == 'register')) // avoid deadlocks and loops
 	{
