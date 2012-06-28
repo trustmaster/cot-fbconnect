@@ -76,6 +76,7 @@ if ($fb_connected)
 if ($_GET['e'] == 'fbconnect' && $_GET['m'] == 'register')
 {
 	define('COT_NO_ANTIXSS', true);
+	$cfg['referercheck'] = false;
 	$sys['uriredir_prev'] = $_SESSION['s_uri_redir'];
 }
 
