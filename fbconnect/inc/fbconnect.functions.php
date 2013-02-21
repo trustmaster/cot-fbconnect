@@ -17,7 +17,7 @@ function fb_autologin($row)
 
 	$rusername = $row['user_name'];
 	$rmdpass = $row['user_password'];
-	$rremember = false;
+	$rremember = true;
 	if ($row['user_maingrp']==-1)
 	{
 		$env['status'] = '403 Forbidden';
