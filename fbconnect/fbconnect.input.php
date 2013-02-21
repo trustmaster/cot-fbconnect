@@ -2,6 +2,7 @@
 /* ====================
  * [BEGIN_COT_EXT]
  * Hooks=input
+ * Order=5
  * [END_COT_EXT]
 ==================== */
 
@@ -9,6 +10,8 @@ defined('COT_CODE') or die('Wrong URL');
 
 require_once $cfg['plugins_dir'] . '/fbconnect/lib/facebook.php';
 require_once $cfg['plugins_dir'] . '/fbconnect/inc/fbconnect.functions.php';
+
+Facebook::$CURL_OPTS[CURLOPT_CAINFO] = $cfg['plugins_dir'] . '/fbconnect/lib/fb_ca_chain_bundle.crt';
 
 $facebook = new Facebook(array(
   'appId'  => $cfg['plugin']['fbconnect']['app_id'],
@@ -20,6 +23,9 @@ $fb_user = $facebook->getUser();
 
 $fb_connected = false;
 $fb_me = null;
+
+// This is required for cookies to work in FB Canvas apps in IE
+header('P3P: CP="ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV HONK"');
 
 if ($fb_user)
 {
@@ -58,6 +64,28 @@ if ($fb_connected)
 		if ($row = $fb_res->fetch())
 		{
 			// Load user account and log him in
+			fb_autologin($row);
+			exit;
+		}
+		elseif ($cfg['plugin']['fbconnect']['autoadd'])
+		{
+			// Automatically add a new user
+			require_once cot_incfile('users', 'module');
+
+			$ruser = array(
+				'user_password' => cot_unique(12)
+			);
+
+			$ruser = fb_complete_profile($fb_me, $ruser);
+
+			// Disable activation for this account
+			$cfg['users']['regnoactivation'] = true;
+
+			// Register
+			$userid = cot_add_user($ruser);
+
+			// Log in
+			$row = $db->query("SELECT * FROM $db_users WHERE user_id = ?", $userid)->fetch();
 			fb_autologin($row);
 			exit;
 		}

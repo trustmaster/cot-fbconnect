@@ -6,12 +6,6 @@ require_once cot_incfile('extrafields');
 
 global $db_users;
 
-if (!$db->fieldExists($db_users, 'user_fbid'))
-{
-	cot_extrafield_add($db_users, 'fbid', 'input', '<input class="text" type="text" maxlength="16" size="16" />', '', '',
-		false, 'Text', 'FaceBook UID');
-}
-
 if (!$db->fieldExists($db_users, 'user_fb_url'))
 {
 	cot_extrafield_add($db_users, 'fb_url', 'input', '<input class="text" type="text" maxlength="255" size="32" />', '', '',
